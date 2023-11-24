@@ -138,6 +138,7 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
             accountPointsCounter = Searches(desktopBrowser).bingSearches(remainingSearches)
 
         if remainingSearchesM != 0:
+            desktopBrowser.closeBrowser()
             with Browser(mobile=True, account=currentAccount, args=args) as mobileBrowser:
                 accountPointsCounter = Login(mobileBrowser).login()
                 accountPointsCounter = Searches(mobileBrowser).bingSearches(remainingSearchesM)
@@ -159,11 +160,11 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
                 ]
             )
         )
-        desktopBrowser.closeBrowser()
         try:
+            desktopBrowser.closeBrowser()
             mobileBrowser.closeBrowser()
-        except Exception as e:
-            logging.warning(f"An error occurred while closing the mobile browser: {e}")
+        except:
+            pass
 
 
 if __name__ == "__main__":
