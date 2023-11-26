@@ -104,4 +104,4 @@ class Login:
                 with contextlib.suppress(Exception):
                     if self.utils.checkBingLogin():
                         return
-            time.sleep(1)
+            time.sleep(3)

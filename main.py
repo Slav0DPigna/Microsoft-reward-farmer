@@ -4,7 +4,9 @@ import logging
 import logging.handlers as handlers
 import random
 import sys
+import time
 from pathlib import Path
+from datetime import datetime
 
 from src import Browser, DailySet, Login, MorePromotions, PunchCards, Searches
 from src.constants import VERSION
@@ -121,50 +123,59 @@ def setupAccounts() -> dict:
 
 
 def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
-    logging.info(
-        f'********************{ currentAccount.get("username", "") }********************'
-    )
-    with Browser(mobile=False, account=currentAccount, args=args) as desktopBrowser:
-        accountPointsCounter = Login(desktopBrowser).login()
-        startingPoints = accountPointsCounter
-        logging.info(
-            f"[POINTS] You have {desktopBrowser.utils.formatNumber(accountPointsCounter)} points on your account !")
-        DailySet(desktopBrowser).completeDailySet()
-        PunchCards(desktopBrowser).completePunchCards()
-        MorePromotions(desktopBrowser).completeMorePromotions()
-        print(desktopBrowser.utils.getRemainingSearches())
-        (remainingSearches, remainingSearchesM,) = desktopBrowser.utils.getRemainingSearches()
-        if remainingSearches != 0:
-            accountPointsCounter = Searches(desktopBrowser).bingSearches(remainingSearches)
+    current_data = datetime.now().strftime("%d-%m-%Y")
+    account_email = currentAccount["username"]
+    with open("seen_account.txt", "r+") as file:
+        content = file.read()
+        if current_data not in content:  # se la data non é quella odierna cancello il contenuto del file, scivo la data
+            file.seek(0)
+            file.truncate()
+            file.write(current_data + "\n")
+            logging.warning("HO SCRITTO LA DATA ODIERNA")
+            # aspetto che il file venga scritto altrimenti si rischia di trovare gli account dei giorni precedenti
+            time.sleep(10)
+        if not (account_email in content):  # se la email non é nel file eseguo la pipeline
+            logging.info(f'********************{currentAccount.get("username", "")}********************')
+            with Browser(mobile=False, account=currentAccount, args=args) as desktopBrowser:
+                accountPointsCounter = Login(desktopBrowser).login()
+                startingPoints = accountPointsCounter
+                logging.info(
+                    f"[POINTS] You have {desktopBrowser.utils.formatNumber(accountPointsCounter)} points on your account !")
+                DailySet(desktopBrowser).completeDailySet()
+                PunchCards(desktopBrowser).completePunchCards()
+                MorePromotions(desktopBrowser).completeMorePromotions()
+                print(desktopBrowser.utils.getRemainingSearches())
+                (remainingSearches, remainingSearchesM,) = desktopBrowser.utils.getRemainingSearches()
+                if remainingSearches != 0:
+                    accountPointsCounter = Searches(desktopBrowser).bingSearches(remainingSearches)
 
-        if remainingSearchesM != 0:
-            desktopBrowser.closeBrowser()
-            with Browser(mobile=True, account=currentAccount, args=args) as mobileBrowser:
-                accountPointsCounter = Login(mobileBrowser).login()
-                accountPointsCounter = Searches(mobileBrowser).bingSearches(remainingSearchesM)
+                if remainingSearchesM != 0:
+                    desktopBrowser.closeBrowser()
+                    with Browser(mobile=True, account=currentAccount, args=args) as mobileBrowser:
+                        accountPointsCounter = Login(mobileBrowser).login()
+                        accountPointsCounter = Searches(mobileBrowser).bingSearches(remainingSearchesM)
 
-        logging.info(
-            f"[POINTS] You have earned {desktopBrowser.utils.formatNumber(accountPointsCounter - startingPoints)} points today !"
-        )
-        logging.info(
-            f"[POINTS] You are now at {desktopBrowser.utils.formatNumber(accountPointsCounter)} points !\n"
-        )
+                logging.info(
+                        f"[POINTS] You have earned {desktopBrowser.utils.formatNumber(accountPointsCounter - startingPoints)} points today !"
+                    )
+                logging.info(
+                        f"[POINTS] You are now at {desktopBrowser.utils.formatNumber(accountPointsCounter)} points !"
+                    )
 
-        notifier.send(
-            "\n".join(
-                [
-                    "Microsoft Rewards Farmer",
-                    f"Account: {currentAccount.get('username', '')}",
-                    f"Points earned today: {desktopBrowser.utils.formatNumber(accountPointsCounter - startingPoints)}",
-                    f"Total points: {desktopBrowser.utils.formatNumber(accountPointsCounter)}",
-                ]
-            )
-        )
-        try:
-            desktopBrowser.closeBrowser()
-            mobileBrowser.closeBrowser()
-        except:
-            pass
+                notifier.send(
+                        "\n".join(
+                            [
+                                "Microsoft Rewards Farmer",
+                                f"Account: {currentAccount.get('username', '')}",
+                                f"Points earned today: {desktopBrowser.utils.formatNumber(accountPointsCounter - startingPoints)}",
+                                f"Total points: {desktopBrowser.utils.formatNumber(accountPointsCounter)}",
+                            ]
+                        )
+                    )
+                file.write(account_email + "\n")
+                logging.warning("Account "+account_email+" added to file\n")
+        else:
+            logging.warning("The account " + account_email + " is alredy seen\n")
 
 
 if __name__ == "__main__":

@@ -53,26 +53,24 @@ class Browser:
         with contextlib.suppress(Exception):
             self.webdriver.quit()
 
-    def browserSetup(
-        self,
-    ) -> WebDriver:
+    def browserSetup(self,) -> WebDriver:
         options = webdriver.ChromeOptions()
         options.headless = self.headless
         options.add_argument(f"--lang={self.localeLang}")
         options.add_argument("--log-level=3")
-
         options.add_argument("--ignore-certificate-errors")
         options.add_argument("--ignore-certificate-errors-spki-list")
         options.add_argument("--ignore-ssl-errors")
+        #aggiungere argomenti
 
         seleniumwireOptions: dict[str, Any] = {"verify_ssl": False}
-
+        #seleniumwireOptions: dict[str, Any] = {"verify_ssl": False, "port": 54146}
         if self.proxy:
-            seleniumwireOptions["proxy"] = {
-                "http": self.proxy,
-                "https": self.proxy,
-                "no_proxy": "localhost,127.0.0.1",
-            }
+               seleniumwireOptions["proxy"] = {
+                   "http": self.proxy, "https": self.proxy,
+                   "no_proxy": "localhost,127.0.0.1",
+                }
+
 
         driver = webdriver.Chrome(
             options=options,
