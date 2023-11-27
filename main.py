@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import logging.handlers as handlers
+import os.path
 import random
 import sys
 import time
@@ -88,18 +89,33 @@ def argumentParser() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def bannerDisplay():
+def bannerDisplay():#TODO scegliere un banner migliore
     farmerBanner = """
-    ███╗   ███╗███████╗    ███████╗ █████╗ ██████╗ ███╗   ███╗███████╗██████╗
-    ████╗ ████║██╔════╝    ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    ██╔████╔██║███████╗    █████╗  ███████║██████╔╝██╔████╔██║█████╗  ██████╔╝
-    ██║╚██╔╝██║╚════██║    ██╔══╝  ██╔══██║██╔══██╗██║╚██╔╝██║██╔══╝  ██╔══██╗
-    ██║ ╚═╝ ██║███████║    ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗██║  ██║
-    ╚═╝     ╚═╝╚══════╝    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝"""
-    logging.error(farmerBanner)
-    logging.warning(
-        f"        by Charles Bel (@charlesbel)               version {VERSION}\n"
-    )
+          _____                    _____            _____                    _____                   _______         
+         /\    \                  /\    \          /\    \                  /\    \                 /::\    \        
+        /::\    \                /::\____\        /::\    \                /::\____\               /::::\    \       
+       /::::\    \              /:::/    /       /::::\    \              /:::/    /              /::::::\    \      
+      /::::::\    \            /:::/    /       /::::::\    \            /:::/    /              /::::::::\    \     
+     /:::/\:::\    \          /:::/    /       /:::/\:::\    \          /:::/    /              /:::/~~\:::\    \    
+    /:::/__\:::\    \        /:::/    /       /:::/__\:::\    \        /:::/____/              /:::/    \:::\    \   
+    \:::\   \:::\    \      /:::/    /       /::::\   \:::\    \       |::|    |              /:::/    / \:::\    \  
+  ___\:::\   \:::\    \    /:::/    /       /::::::\   \:::\    \      |::|    |     _____   /:::/____/   \:::\____\ 
+ /\   \:::\   \:::\    \  /:::/    /       /:::/\:::\   \:::\    \     |::|    |    /\    \ |:::|    |     |:::|    |
+/::\   \:::\   \:::\____\/:::/____/       /:::/  \:::\   \:::\____\    |::|    |   /::\____\|:::|____|     |:::|    |
+\:::\   \:::\   \::/    /\:::\    \       \::/    \:::\  /:::/    /    |::|    |  /:::/    / \:::\    \   /:::/    / 
+ \:::\   \:::\   \/____/  \:::\    \       \/____/ \:::\/:::/    /     |::|    | /:::/    /   \:::\    \ /:::/    /  
+  \:::\   \:::\    \       \:::\    \               \::::::/    /      |::|____|/:::/    /     \:::\    /:::/    /   
+   \:::\   \:::\____\       \:::\    \               \::::/    /       |:::::::::::/    /       \:::\__/:::/    /    
+    \:::\  /:::/    /        \:::\    \              /:::/    /        \::::::::::/____/         \::::::::/    /     
+     \:::\/:::/    /          \:::\    \            /:::/    /          ~~~~~~~~~~                \::::::/    /      
+      \::::::/    /            \:::\    \          /:::/    /                                      \::::/    /       
+       \::::/    /              \:::\____\        /:::/    /                                        \::/____/        
+        \::/    /                \::/    /        \::/    /                                          ~~              
+         \/____/                  \/____/          \/____/                                                           
+                                                                                                                     
+"""
+    logging.info(farmerBanner)
+    logging.info(f"        by Slav0 (@Slav0DPigna)               version {VERSION}\n")
 
 
 def setupAccounts() -> dict:
@@ -125,6 +141,9 @@ def setupAccounts() -> dict:
 def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
     current_data = datetime.now().strftime("%d-%m-%Y")
     account_email = currentAccount["username"]
+    if not os.path.exists("seen_account.txt"):  # verifico che questo file esiste
+        open("seen_account.txt", "x")  # se non esiste lo creo
+        logging.warning("I create a seen_account file")
     with open("seen_account.txt", "r+") as file:
         content = file.read()
         if current_data not in content:  # se la data non é quella odierna cancello il contenuto del file, scivo la data
@@ -185,3 +204,4 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
 
 if __name__ == "__main__":
     main()
+    quit()
