@@ -150,7 +150,7 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
             file.seek(0)
             file.truncate()
             file.write(current_data + "\n")
-            logging.warning("HO SCRITTO LA DATA ODIERNA")
+            logging.warning("I wrote today's date")
             # aspetto che il file venga scritto altrimenti si rischia di trovare gli account dei giorni precedenti
             content = file.read()
         if not (account_email in content):  # se la email non é nel file eseguo la pipeline
@@ -164,8 +164,9 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
                 DailySet(desktopBrowser).completeDailySet()
                 PunchCards(desktopBrowser).completePunchCards()
                 MorePromotions(desktopBrowser).completeMorePromotions()
-                print(desktopBrowser.utils.getRemainingSearches())
                 (remainingSearches, remainingSearchesM,) = desktopBrowser.utils.getRemainingSearches()
+                logging.info("Desktop search remaining " + str(remainingSearches))
+                logging.info("Mobile search remaining " + str(remainingSearchesM))
                 if remainingSearches != 0:
                     accountPointsCounter = Searches(desktopBrowser).bingSearches(remainingSearches)
                 if remainingSearchesM != 0:
@@ -192,14 +193,14 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
                     )
                 )
                 file.write(account_email + "\n")
-                logging.warning("Account " + account_email + " added to file\n")
+                logging.warning("Account " + account_email + " added to file")
                 try:
                     desktopBrowser.closeBrowser()
                     mobileBrowser.closeBrowser()
                 except:
                     pass
         else:
-            logging.warning("The account " + account_email + " is alredy seen\n")
+            logging.warning("The account " + account_email + " is alredy seen")
 
 
 if __name__ == "__main__":
