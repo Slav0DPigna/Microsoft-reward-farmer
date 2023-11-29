@@ -212,12 +212,14 @@ class Utils:
             targetDesktop = (counters["pcSearch"][0]["pointProgressMax"] + counters["pcSearch"][1]["pointProgressMax"])
         except:
             targetDesktop = counters["pcSearch"][0]["pointProgressMax"]
-        if targetDesktop in [33, 102]:
+        print("Target desktop= ".capitalize() + str(targetDesktop))  # debug per aggiustare il conteggio dei punti
+        if 33 <= targetDesktop <= 102:
             # Level 1 or 2 EU
             searchPoints = 3
         elif targetDesktop == 55 or targetDesktop >= 170:
             # Level 1 or 2 US
             searchPoints = 5
+        print("Search Point= ".capitalize() + str(searchPoints))  # debug per aggiustare il conteggio dei punti
         remainingDesktop = int((targetDesktop - progressDesktop) / searchPoints)
         remainingMobile = 0
         if dashboard["userStatus"]["levelInfo"]["activeLevel"] != "Level1":
