@@ -150,7 +150,7 @@ class Browser:
 
     def setupProfiles(self) -> Path:
         """
-        Sets up the sessions profile for the chrome browser.
+        Sets up the sessions profile for the Chrome browser.
         Uses the username to create a unique profile for the session.
 
         Returns:

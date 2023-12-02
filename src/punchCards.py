@@ -15,9 +15,12 @@ class PunchCards:
     def __init__(self, browser: Browser):
         self.browser = browser
         self.webdriver = browser.webdriver
+        self.cookies_accepted = False
 
     def completePunchCard(self, url: str, childPromotions: dict):
         self.webdriver.get(url)
+        #time.sleep(random.randint(5, 15))
+        #self.accept_cookies()
         for child in childPromotions:
             if child["complete"] is False:
                 if child["promotionType"] == "urlreward":
@@ -26,10 +29,7 @@ class PunchCards:
                 if child["promotionType"] == "quiz":
                     self.webdriver.find_element(By.CLASS_NAME, "offer-cta").click()
                     self.browser.utils.switchToNewTab(8)
-                    counter = str(
-                        self.webdriver.find_element(
-                            By.XPATH, '//*[@id="QuestionPane0"]/div[2]'
-                        ).get_attribute("innerHTML")
+                    counter = str(self.webdriver.find_element(By.XPATH, '//*[@id="QuestionPane0"]/div[2]').get_attribute("innerHTML")
                     )[:-1][1:]
                     numberOfQuestions = max(
                         int(s) for s in counter.split() if s.isdigit()
@@ -47,6 +47,18 @@ class PunchCards:
                         time.sleep(3)
                     time.sleep(5)
                     self.browser.utils.closeCurrentTab()
+
+    def accept_cookies(self):
+        if not self.cookies_accepted:
+            try:
+                self.browser.utils.waitUntilClickable(By.ID, "bnp_btn_accept")
+                accept_button = self.webdriver.find_element(By.ID, 'bnp_btn_accept')
+                accept_button.click()
+                self.cookies_accepted = True
+                logging.info("Punch cards' cookies accepted!!!")
+            except:
+                logging.error("I can't accept punch cards' cookies...")
+                pass  # Handle the case when the cookie acceptance button is not found
 
     def completePunchCards(self):
         logging.info("[PUNCH CARDS] " + "Trying to complete the Punch Cards...")

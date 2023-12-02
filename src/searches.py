@@ -12,9 +12,11 @@ from src.browser import Browser
 
 
 class Searches:
+
     def __init__(self, browser: Browser):
         self.browser = browser
         self.webdriver = browser.webdriver
+        self.cookies_accepted = False
 
     def getGoogleTrends(self, wordsCount: int) -> list:
         searchTerms: list[str] = []
@@ -71,6 +73,18 @@ class Searches:
         )
         return pointsCounter
 
+    def accept_cookies(self):
+        if not self.cookies_accepted:
+            try:
+                self.browser.utils.waitUntilClickable(By.ID, "bnp_btn_accept")
+                accept_button = self.webdriver.find_element(By.ID, 'bnp_btn_accept')
+                accept_button.click()
+                logging.info("Search's cockies accepted!!!")
+                self.cookies_accepted = True
+            except:
+                logging.error("I can't accept search's cookies...")
+                pass  # Handle the case when the cookie acceptance button is not found
+
     def bingSearch(self, word: str):
         while True:
             try:
@@ -79,6 +93,8 @@ class Searches:
                 searchbar = self.webdriver.find_element(By.ID, "sb_form_q")
                 searchbar.send_keys(word)
                 searchbar.submit()
+                #time.sleep(random.randint(5, 15))
+                #self.accept_cookies()
                 random_int = random.randint(10, 25)
                 logging.info("[BING] time to sleep "+str(random_int))
                 time.sleep(random_int)

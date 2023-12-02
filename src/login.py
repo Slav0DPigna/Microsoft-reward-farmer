@@ -50,19 +50,18 @@ class Login:
     def executeLogin(self):
         self.utils.waitUntilVisible(By.ID, "loginHeader", 10)
         logging.info("[LOGIN] " + "Writing email...")
-        self.webdriver.find_element(By.NAME, "loginfmt").send_keys(
-            self.browser.username
-        )
+        self.webdriver.find_element(By.NAME, "loginfmt").send_keys(self.browser.username)
         self.webdriver.find_element(By.ID, "idSIButton9").click()
-
         try:
             self.enterPassword(self.browser.password)
+            for i in range(5):
+                logging.info("Sleep: "+str(i))
+                time.sleep(1)
+            self.webdriver.find_element(By.ID, "idSIButton9").click()
         except Exception:  # pylint: disable=broad-except
             logging.error("[LOGIN] " + "2FA required !")
             with contextlib.suppress(Exception):
-                code = self.webdriver.find_element(
-                    By.ID, "idRemoteNGC_DisplaySign"
-                ).get_attribute("innerHTML")
+                code = self.webdriver.find_element(By.ID, "idRemoteNGC_DisplaySign").get_attribute("innerHTML")
                 logging.error("[LOGIN] " + f"2FA code: {code}")
             logging.info("[LOGIN] Press enter when confirmed...")
             input()
