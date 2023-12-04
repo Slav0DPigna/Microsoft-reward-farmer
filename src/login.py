@@ -55,10 +55,13 @@ class Login:
         try:
             self.enterPassword(self.browser.password)
             for i in range(5):
-                logging.info("Sleep: "+str(i))
+                logging.info("Sleep: "+str(5-i))
                 time.sleep(1)
-            self.webdriver.find_element(By.ID, "idSIButton9").click()
-        except Exception:  # pylint: disable=broad-except
+            try:
+                self.webdriver.find_element(By.ID, "idSIButton9").click()
+            except:
+                self.webdriver.find_element(By.ID, "acceptButton").click()
+        except Exception as e:  # pylint: disable=broad-except
             logging.error("[LOGIN] " + "2FA required !")
             with contextlib.suppress(Exception):
                 code = self.webdriver.find_element(By.ID, "idRemoteNGC_DisplaySign").get_attribute("innerHTML")
