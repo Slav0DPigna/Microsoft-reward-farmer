@@ -23,35 +23,21 @@ class DailySet:
                 if activity["complete"] is False:
                     cardId = int(activity["offerId"][-1:])
                     self.activities.openDailySetActivity(cardId)
+                    logging.info("[INFO] [DAILY SET] opening new activities")
                     if activity["promotionType"] == "urlreward":
                         logging.info(
                             "[DAILY SET] " + f"Completing search of card {cardId}"
                         )
                         self.activities.completeSearch()
                     if activity["promotionType"] == "quiz":
-                        if (
-                            activity["pointProgressMax"] == 50
-                            and activity["pointProgress"] == 0
-                        ):
-                            logging.info(
-                                "[DAILY SET] "
-                                + f"Completing This or That of card {cardId}"
-                            )
+                        if activity["pointProgressMax"] == 50 and activity["pointProgress"] == 0:
+                            logging.info("[DAILY SET] " + f"Completing This or That of card {cardId}")
                             self.activities.completeThisOrThat()
-                        elif (
-                            activity["pointProgressMax"] in [40, 30]
-                            and activity["pointProgress"] == 0
-                        ):
-                            logging.info(
-                                "[DAILY SET] " + f"Completing quiz of card {cardId}"
-                            )
+                        elif (activity["pointProgressMax"] in [40, 30]) and activity["pointProgress"] == 0:
+                            logging.info("[DAILY SET] " + f"Completing quiz of card {cardId}")
                             self.activities.completeQuiz()
-                        elif (
-                            activity["pointProgressMax"] == 10
-                            and activity["pointProgress"] == 0
-                        ):
-                            searchUrl = urllib.parse.unquote(
-                                urllib.parse.parse_qs(
+                        elif activity["pointProgressMax"] == 10 and activity["pointProgress"] == 0:
+                            searchUrl = urllib.parse.unquote(urllib.parse.parse_qs(
                                     urllib.parse.urlparse(
                                         activity["destinationUrl"]
                                     ).query
@@ -65,14 +51,10 @@ class DailySet:
                                 filterEl = filterEl.split(":", 1)
                                 filters[filterEl[0]] = filterEl[1]
                             if "PollScenarioId" in filters:
-                                logging.info(
-                                    "[DAILY SET] " + f"Completing poll of card {cardId}"
-                                )
+                                logging.info("[DAILY SET] " + f"Completing poll of card {cardId}")
                                 self.activities.completeSurvey()
                             else:
-                                logging.info(
-                                    "[DAILY SET] " + f"Completing quiz of card {cardId}"
-                                )
+                                logging.info("[DAILY SET] " + f"Completing quiz of card {cardId}")
                                 try:
                                     self.activities.completeABC()
                                 except Exception:  # pylint: disable=broad-except

@@ -3,6 +3,7 @@ import json
 import logging
 import logging.handlers as handlers
 import os.path
+import shutil
 import random
 import sys
 import time
@@ -50,6 +51,12 @@ def setupLogging():
             terminalHandler,
         ],
     )
+    try:
+        shutil.rmtree("sessions")
+        logging.info("[INFO] Folder and contents successfully deleted")
+    except:
+        logging.info("[INFO] Sessions folder not existing")
+        pass
 
 
 def argumentParser() -> argparse.Namespace:

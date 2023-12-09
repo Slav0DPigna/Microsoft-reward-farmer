@@ -1,3 +1,4 @@
+import logging
 import random
 import time
 
@@ -10,6 +11,15 @@ class Activities:
     def __init__(self, browser: Browser):
         self.browser = browser
         self.webdriver = browser.webdriver
+
+    def accept_cookies(self):
+        try:
+            self.webdriver.find_element(By.ID, "bnp_btn_accept").click()
+            logging.info("[INFO] Cookies accepted")
+        except:
+            self.webdriver.find_element(By.ID, "bnp_btn_reject").click()
+            logging.info("[INFO] Cookies rejected")
+            pass
 
     def openDailySetActivity(self, cardId: int):
         self.webdriver.find_element(
@@ -27,9 +37,12 @@ class Activities:
 
     def completeSearch(self):
         time.sleep(random.randint(5, 10))
+        self.accept_cookies()
         self.browser.utils.closeCurrentTab()
 
     def completeSurvey(self):
+        self.accept_cookies()
+        time.sleep(random.randint(1,6))
         self.webdriver.find_element(By.ID, f"btoption{random.randint(0, 1)}").click()
         time.sleep(random.randint(10, 15))
         self.browser.utils.closeCurrentTab()
@@ -38,6 +51,7 @@ class Activities:
         if not self.browser.utils.waitUntilQuizLoads():
             self.browser.utils.resetTabs()
             return
+        self.accept_cookies()
         self.webdriver.find_element(By.XPATH, '//*[@id="rqStartQuiz"]').click()
         self.browser.utils.waitUntilVisible(
             By.XPATH, '//*[@id="currentQuestionContainer"]/div/div[1]', 5
@@ -87,9 +101,8 @@ class Activities:
         self.browser.utils.closeCurrentTab()
 
     def completeABC(self):
-        counter = self.webdriver.find_element(
-            By.XPATH, '//*[@id="QuestionPane0"]/div[2]'
-        ).text[:-1][1:]
+        counter = self.webdriver.find_element(By.XPATH, '//*[@id="QuestionPane0"]/div[2]').text[:-1][1:]
+        self.accept_cookies()
         numberOfQuestions = max(int(s) for s in counter.split() if s.isdigit())
         for question in range(numberOfQuestions):
             self.webdriver.find_element(
@@ -105,6 +118,7 @@ class Activities:
         if not self.browser.utils.waitUntilQuizLoads():
             self.browser.utils.resetTabs()
             return
+        self.accept_cookies()
         self.webdriver.find_element(By.XPATH, '//*[@id="rqStartQuiz"]').click()
         self.browser.utils.waitUntilVisible(
             By.XPATH, '//*[@id="currentQuestionContainer"]/div/div[1]', 10
