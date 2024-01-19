@@ -49,16 +49,21 @@ class Searches:
         except Exception:  # pylint: disable=broad-except
             return []
 
-    def bingSearches(self, numberOfSearches: int, pointsCounter: int = 0):
-        logging.info("[BING] "+ f"Starting {self.browser.browserType.capitalize()} Edge Bing searches...",)
-
+    def bingSearches(self, numberOfSearches: int):
+        logging.info("[BING] " + f"Starting {self.browser.browserType.capitalize()} Edge Bing searches...",)
+        pointsCounter = self.browser.utils.getBingAccountPoints()
         i = 0
         search_terms = self.getGoogleTrends(numberOfSearches)
         for word in search_terms:
             i += 1
             logging.info("[BING] " + f"{i}/{numberOfSearches}"+" the search is "+str(word))
             points = self.bingSearch(word)
-            if points <= pointsCounter:
+            if points <= pointsCounter and i > 1:
+                logging.warning("Points don't increase. I have to wait about 5 minutes")
+                for j in range(5):
+                    time.sleep(60)
+                    logging.info(str(j+1)+" minutes passed")
+                logging.warning("The waiting is finished")
                 relatedTerms = self.getRelatedTerms(word)[:2]
                 for term in relatedTerms:
                     points = self.bingSearch(term)
@@ -68,9 +73,7 @@ class Searches:
                 pointsCounter = points
             else:
                 break
-        logging.info(
-            f"[BING] Finished {self.browser.browserType.capitalize()} Edge Bing searches !"
-        )
+        logging.info(f"[BING] Finished {self.browser.browserType.capitalize()} Edge Bing searches !")
         return pointsCounter
 
     def accept_cookies(self):
@@ -101,5 +104,5 @@ class Searches:
                 return self.browser.utils.getBingAccountPoints()
             except TimeoutException:
                 logging.error("[BING] Timeout, retrying in 5 seconds...")
-                time.sleep(10)
+                time.sleep(5)
                 continue

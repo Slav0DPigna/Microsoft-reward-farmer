@@ -105,3 +105,4 @@
 ## Future Features
 
 - GUI
+-Multithreading

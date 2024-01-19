@@ -9,6 +9,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from threading import Thread
 
 from src import Browser, DailySet, Login, MorePromotions, PunchCards, Searches
 from src.constants import VERSION
@@ -28,6 +29,18 @@ def main():
             executeBot(currentAccount, notifier, args)
         except Exception as e:
             logging.exception(f"{e.__class__.__name__}: {e}")
+
+    #creo un thread per ogni account
+    #threads = []
+    #for currentAccount in loadedAccounts:
+    #    thread = Thread(target=executeBot, args=(currentAccount, notifier, args))
+    #    threads.append(thread)
+    #    thread.start()
+    #    time.sleep(1)
+
+    # Attendo che tutti i thread abbiano completato l'esecuzione
+    #for thread in threads:
+    #    thread.join()
 
 
 def setupLogging():
@@ -141,7 +154,7 @@ def setupAccounts() -> dict:
         logging.warning(noAccountsNotice)
         exit()
     loadedAccounts = json.loads(accountPath.read_text(encoding="utf-8"))
-    random.shuffle(loadedAccounts)
+    #random.shuffle(loadedAccounts)
     return loadedAccounts
 
 
