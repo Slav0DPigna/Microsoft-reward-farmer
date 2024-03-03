@@ -3,13 +3,14 @@ import json
 import logging
 import logging.handlers as handlers
 import os.path
+import os
 import shutil
 import random
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from threading import Thread
+from threading import Thread, Event
 
 from src import Browser, DailySet, Login, MorePromotions, PunchCards, Searches
 from src.constants import VERSION
@@ -30,32 +31,19 @@ def main():
         except Exception as e:
             logging.exception(f"{e.__class__.__name__}: {e}")
 
-    #creo un thread per ogni account
-    #threads = []
-    #for currentAccount in loadedAccounts:
-    #    thread = Thread(target=executeBot, args=(currentAccount, notifier, args))
-    #    threads.append(thread)
-    #    thread.start()
-    #    time.sleep(1)
-
-    # Attendo che tutti i thread abbiano completato l'esecuzione
-    #for thread in threads:
-    #    thread.join()
-
-
 def setupLogging():
     format = "%(asctime)s [%(levelname)s] %(message)s"
     terminalHandler = logging.StreamHandler(sys.stdout)
     terminalHandler.setFormatter(ColoredFormatter(format))
 
-    (Path(__file__).resolve().parent / "logs").mkdir(parents=True, exist_ok=True)
+    (Path(__file__).resolve().parent / "src/logs").mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
         level=logging.INFO,
         format=format,
         handlers=[
             handlers.TimedRotatingFileHandler(
-                "logs/activity.log",
+                "src/logs/activity.log",
                 when="midnight",
                 interval=1,
                 backupCount=2,
@@ -65,7 +53,7 @@ def setupLogging():
         ],
     )
     try:
-        shutil.rmtree("sessions")
+        shutil.rmtree("src//sessions")
         logging.info("[INFO] Folder and contents successfully deleted")
     except:
         logging.info("[INFO] Sessions folder not existing")
@@ -161,19 +149,12 @@ def setupAccounts() -> dict:
 def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
     current_data = datetime.now().strftime("%d-%m-%Y")
     account_email = currentAccount["username"]
-    if not os.path.exists("seen_account.txt"):  # verifico che questo file esiste
-        open("seen_account.txt", "x")  # se non esiste lo creo
+    if not os.path.exists("src/seen_account.txt"):  # verifico che questo file esiste
+        open("src/seen_account.txt", "x")  # se non esiste lo creo
         logging.warning("I create a seen_account file")
-    with open("seen_account.txt", "r+") as file:
+    with open("src/seen_account.txt", "r+") as file:
         content = file.read()
-        if current_data not in content:  # se la data non é quella odierna cancello il contenuto del file, scivo la data
-            file.seek(0)
-            file.truncate()
-            file.write(current_data + "\n")
-            logging.warning("I wrote today's date")
-            # aspetto che il file venga scritto altrimenti si rischia di trovare gli account dei giorni precedenti
-            content = file.read()
-        if not (account_email in content):  # se la email non é nel file eseguo la pipeline
+        if account_email not in content:  # se la email non é nel file eseguo la pipeline
             logging.info(f'********************{currentAccount.get("username", "")}********************')
             with Browser(mobile=False, account=currentAccount, args=args) as desktopBrowser:
                 accountPointsCounter = Login(desktopBrowser).login()
@@ -212,6 +193,13 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
                         ]
                     )
                 )
+                if current_data not in content:  # se la data non é quella odierna cancello il contenuto del file, scivo la data
+                    file.seek(0)
+                    file.truncate()
+                    file.write(current_data + "\n")
+                    logging.warning("I wrote today's date")
+                    # aspetto che il file venga scritto altrimenti si rischia di trovare gli account dei giorni precedenti
+                    content = file.read()
                 file.write(account_email + "\n")
                 logging.warning("Account " + account_email + " added to file")
                 try:

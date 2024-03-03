@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import ipapi
+import seleniumwire
 import seleniumwire.undetected_chromedriver as webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
 
@@ -77,6 +78,7 @@ class Browser:
             options=options,
             seleniumwire_options=seleniumwireOptions,
             user_data_dir=self.userDataDir.as_posix(),
+            #version_main=120#ricordarsi di verificare la versione se si hanno problemi con la connessione al web driver
         )
 
         seleniumLogger = logging.getLogger("seleniumwire")
@@ -158,14 +160,14 @@ class Browser:
         """
         currentPath = Path(__file__)
         parent = currentPath.parent.parent
-        sessionsDir = parent / "sessions"
+        sessionsDir = parent / "src//sessions"
 
         sessionUuid = uuid.uuid5(uuid.NAMESPACE_DNS, self.username)
         sessionsDir = sessionsDir / str(sessionUuid) / self.browserType
         sessionsDir.mkdir(parents=True, exist_ok=True)
         return sessionsDir
 
-    def getCCodeLang(self, lang: str, geo: str) -> tuple:
+    def getCCodeLang(self, lang: str, geo: str) -> tuple:#bug sulla lingua da risolvere
         if lang is None or geo is None:
             try:
                 nfo = ipapi.location()
