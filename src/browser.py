@@ -66,7 +66,6 @@ class Browser:
         #aggiungere argomenti
 
         seleniumwireOptions: dict[str, Any] = {"verify_ssl": False}
-        #seleniumwireOptions: dict[str, Any] = {"verify_ssl": False, "port": 54146}
         if self.proxy:
                seleniumwireOptions["proxy"] = {
                    "http": self.proxy, "https": self.proxy,
@@ -78,7 +77,7 @@ class Browser:
             options=options,
             seleniumwire_options=seleniumwireOptions,
             user_data_dir=self.userDataDir.as_posix(),
-            #version_main=120#ricordarsi di verificare la versione se si hanno problemi con la connessione al web driver
+            #version_main=120
         )
 
         seleniumLogger = logging.getLogger("seleniumwire")

@@ -2,15 +2,15 @@ import argparse
 import json
 import logging
 import logging.handlers as handlers
-import os.path
 import os
-import shutil
+import os.path
 import random
+import shutil
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from threading import Thread, Event
+from threading import Event, Thread
 
 from src import Browser, DailySet, Login, MorePromotions, PunchCards, Searches
 from src.constants import VERSION
@@ -23,13 +23,23 @@ POINTS_COUNTER = 0
 def main():
     setupLogging()
     args = argumentParser()
+    if args.add_account:
+        add_account(args.add_account[0], args.add_account[1])
+        return
     notifier = Notifier(args)
     loadedAccounts = setupAccounts()
+    delete_sessions_folder()
     for currentAccount in loadedAccounts:
-        try:
-            executeBot(currentAccount, notifier, args)
-        except Exception as e:
-            logging.exception(f"{e.__class__.__name__}: {e}")
+        can_continue = True
+        if "@" not in currentAccount["username"]:
+            logging.error("Email " + currentAccount["username"] + " not valid")
+            can_continue = False
+        if can_continue:
+            try:
+                executeBot(currentAccount, notifier, args)
+            except Exception as e:
+                logging.exception(f"{e.__class__.__name__}: {e}")
+
 
 def setupLogging():
     format = "%(asctime)s [%(levelname)s] %(message)s"
@@ -52,12 +62,12 @@ def setupLogging():
             terminalHandler,
         ],
     )
-    try:
-        shutil.rmtree("src//sessions")
-        logging.info("[INFO] Folder and contents successfully deleted")
-    except:
-        logging.info("[INFO] Sessions folder not existing")
-        pass
+    # try:
+    #    shutil.rmtree("src//sessions")
+    #    logging.info("[INFO] Folder and contents successfully deleted")
+    # except:
+    #    logging.info("[INFO] Sessions folder not existing")
+    #    pass
 
 
 def argumentParser() -> argparse.Namespace:
@@ -94,10 +104,39 @@ def argumentParser() -> argparse.Namespace:
         default=None,
         help="Optional: Discord Webhook URL (ex: https://discord.com/api/webhooks/123456789/ABCdefGhIjKlmNoPQRsTUVwxyZ)",
     )
+    parser.add_argument(
+        "-a",
+        "--add",
+        metavar=("EMAIL", "PASSWD"),
+        nargs=2,
+        type=str,
+        default=None,
+        help="Optional: Add account on json account file",
+    )
     return parser.parse_args()
 
 
-def bannerDisplay():#TODO scegliere un banner migliore
+def add_account(email: str, passwd: str):
+    path = "accounts.json"
+    if not os.path.exists(path):
+        path = "_internal/accounts.json"
+    print(path)
+    with open(path, "r") as file:
+        if email in file.read():
+            logging.error("Account already added")
+            return
+    if "@" in email:
+        with open(path, "r") as file:
+            data = json.load(file)
+        data.append({"username": email, "password": passwd})
+        with open(path, "w") as file:
+            json.dump(data, file, indent=2)
+        logging.info("Account successfully added")
+    else:
+        logging.error("Invalid email")
+
+
+def bannerDisplay():
     farmerBanner = """
           _____                    _____            _____                    _____                   _______         
          /\    \                  /\    \          /\    \                  /\    \                 /::\    \        
@@ -142,7 +181,7 @@ def setupAccounts() -> dict:
         logging.warning(noAccountsNotice)
         exit()
     loadedAccounts = json.loads(accountPath.read_text(encoding="utf-8"))
-    #random.shuffle(loadedAccounts)
+    # random.shuffle(loadedAccounts)
     return loadedAccounts
 
 
@@ -154,9 +193,15 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
         logging.warning("I create a seen_account file")
     with open("src/seen_account.txt", "r+") as file:
         content = file.read()
-        if account_email not in content:  # se la email non é nel file eseguo la pipeline
-            logging.info(f'********************{currentAccount.get("username", "")}********************')
-            with Browser(mobile=False, account=currentAccount, args=args) as desktopBrowser:
+        if (
+            account_email not in content
+        ):  # se la email non é nel file eseguo la pipeline
+            logging.info(
+                f'********************{currentAccount.get("username", "")}********************'
+            )
+            with Browser(
+                mobile=False, account=currentAccount, args=args
+            ) as desktopBrowser:
                 accountPointsCounter = Login(desktopBrowser).login()
                 startingPoints = accountPointsCounter
                 logging.info(
@@ -165,16 +210,25 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
                 DailySet(desktopBrowser).completeDailySet()
                 PunchCards(desktopBrowser).completePunchCards()
                 MorePromotions(desktopBrowser).completeMorePromotions()
-                (remainingSearches, remainingSearchesM,) = desktopBrowser.utils.getRemainingSearches()
+                (
+                    remainingSearches,
+                    remainingSearchesM,
+                ) = desktopBrowser.utils.getRemainingSearches()
                 logging.info("Desktop search remaining " + str(remainingSearches))
                 logging.info("Mobile search remaining " + str(remainingSearchesM))
                 if remainingSearches != 0:
-                    accountPointsCounter = Searches(desktopBrowser).bingSearches(remainingSearches)
+                    accountPointsCounter = Searches(desktopBrowser).bingSearches(
+                        remainingSearches
+                    )
                 if remainingSearchesM != 0:
                     desktopBrowser.closeBrowser()
-                    with Browser(mobile=True, account=currentAccount, args=args) as mobileBrowser:
+                    with Browser(
+                        mobile=True, account=currentAccount, args=args
+                    ) as mobileBrowser:
                         accountPointsCounter = Login(mobileBrowser).login()
-                        accountPointsCounter = Searches(mobileBrowser).bingSearches(remainingSearchesM)
+                        accountPointsCounter = Searches(mobileBrowser).bingSearches(
+                            remainingSearchesM
+                        )
 
                 logging.info(
                     f"[POINTS] You have earned {desktopBrowser.utils.formatNumber(accountPointsCounter - startingPoints)} points today !"
@@ -193,7 +247,9 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
                         ]
                     )
                 )
-                if current_data not in content:  # se la data non é quella odierna cancello il contenuto del file, scivo la data
+                if (
+                    current_data not in content
+                ):  # se la data non é quella odierna cancello il contenuto del file, scivo la data
                     file.seek(0)
                     file.truncate()
                     file.write(current_data + "\n")
@@ -211,6 +267,18 @@ def executeBot(currentAccount, notifier: Notifier, args: argparse.Namespace):
             logging.warning("The account " + account_email + " is alredy seen")
 
 
+def delete_sessions_folder():
+    path = Path(__file__).parent / "src//sessions"
+    try:
+        shutil.rmtree(path)
+        logging.info(
+            f"Directory '{path}' and it's contents have been successfully deleted."
+        )
+    except Exception as e:
+        logging.error(f"An error occurred while deleting the directory session: {e}")
+
+
 if __name__ == "__main__":
     main()
+    delete_sessions_folder()
     quit()
