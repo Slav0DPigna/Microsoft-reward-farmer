@@ -23,7 +23,7 @@ POINTS_COUNTER = 0
 def main():
     setupLogging()
     args = argumentParser()
-    if args.add_account:
+    if args.add:
         add_account(args.add_account[0], args.add_account[1])
         return
     notifier = Notifier(args)
