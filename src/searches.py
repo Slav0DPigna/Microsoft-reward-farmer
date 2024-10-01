@@ -59,16 +59,16 @@ class Searches:
             logging.info("[BING] " + f"{i}/{numberOfSearches}"+" the search is "+str(word))
             points = self.bingSearch(word)
             if points <= pointsCounter and i > 1:
-                logging.warning("Points don't increase. I have to wait about 5 minutes")
-                for j in range(5):
+                logging.warning("Points don't increase. I have to wait about 15 minutes")
+                for j in range(15):
                     time.sleep(60)
                     logging.info(str(j+1)+" minutes passed")
                 logging.warning("The waiting is finished")
-                relatedTerms = self.getRelatedTerms(word)[:2]
-                for term in relatedTerms:
-                    points = self.bingSearch(term)
-                    if not points <= pointsCounter:
-                        break
+                #relatedTerms = self.getRelatedTerms(word)[:2]
+                #for term in relatedTerms:
+                #    points = self.bingSearch(term)
+                #    if not points <= pointsCounter:
+                #        break
             if points > 0:
                 pointsCounter = points
             else:
@@ -96,10 +96,8 @@ class Searches:
                 searchbar = self.webdriver.find_element(By.ID, "sb_form_q")
                 searchbar.send_keys(word)
                 searchbar.submit()
-                #time.sleep(random.randint(5, 15))
-                #self.accept_cookies()
-                random_int = random.randint(10, 25)
-                logging.info("[BING] time to sleep "+str(random_int))
+                random_int = random.randint(60, 120)
+                logging.info("[BING] time to sleep "+str(random_int)+" seconds")
                 time.sleep(random_int)
                 return self.browser.utils.getBingAccountPoints()
             except TimeoutException:
