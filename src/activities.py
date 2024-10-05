@@ -2,6 +2,7 @@ import logging
 import random
 import time
 
+from selenium.common import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.common.by import By
 
 from src.browser import Browser
@@ -16,10 +17,13 @@ class Activities:
         try:
             self.webdriver.find_element(By.ID, "bnp_btn_accept").click()
             logging.info("[INFO] Cookies accepted")
-        except:
-            self.webdriver.find_element(By.ID, "bnp_btn_reject").click()
-            logging.info("[INFO] Cookies rejected")
-            pass
+        except (NoSuchElementException, ElementNotInteractableException):
+            try:
+                self.webdriver.find_element(By.ID, "bnp_btn_reject").click()
+                logging.info("[INFO] Cookies rejected")
+            except (NoSuchElementException, ElementNotInteractableException) as e:
+                logging.error(f" Unable to find or interact with cookie buttons: {e}")
+
 
     def openDailySetActivity(self, cardId: int):
         self.webdriver.find_element(

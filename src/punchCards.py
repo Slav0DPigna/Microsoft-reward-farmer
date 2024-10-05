@@ -63,7 +63,11 @@ class PunchCards:
     def completePunchCards(self):
         logging.info("[PUNCH CARDS] " + "Trying to complete the Punch Cards...")
         self.completePromotionalItems()
-        punchCards = self.browser.utils.getDashboardData()["punchCards"]
+        try:
+            punchCards = self.browser.utils.getDashboardData()["punchCards"]
+            # Logica per completare i Punch Cards
+        except ValueError as e:
+            logging.error(f"Unable to retrieve dashboard data: {e}")
         for punchCard in punchCards:
             try:
                 if (

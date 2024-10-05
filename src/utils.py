@@ -1,6 +1,7 @@
 import contextlib
 import json
 import locale as pylocale
+import logging
 import time
 import urllib.parse
 from pathlib import Path
@@ -113,7 +114,21 @@ class Utils:
         return str(t)
 
     def getDashboardData(self) -> dict:
-        return self.webdriver.execute_script("return dashboard")
+        #return self.webdriver.execute_script("return dashboard")
+        script = """
+        if (typeof dashboard !== 'undefined') {
+            return dashboard;
+        } else {
+            return null;
+        }
+        """
+        current_url = self.webdriver.current_url
+        if current_url!="https://rewards.bing.com/":
+            self.webdriver.get("https://rewards.bing.com/")
+        dashboard_data = self.webdriver.execute_script(script)
+        if dashboard_data is None:
+            raise ValueError("Dashboard object is not defined on the page.")
+        return dashboard_data
 
     def getBingInfo(self):
         cookieJar = self.webdriver.get_cookies()
@@ -189,10 +204,20 @@ class Utils:
             time.sleep(timeToWait)
 
     def closeCurrentTab(self):
-        self.webdriver.close()
-        time.sleep(0.5)
-        self.webdriver.switch_to.window(window_name=self.webdriver.window_handles[0])
-        time.sleep(0.5)
+        def closeCurrentTab(self):
+            # Controlla il numero di finestre aperte prima di chiudere una finestra
+            handles_before = self.webdriver.window_handles
+
+            if len(handles_before) > 1:
+                self.webdriver.close()
+                time.sleep(0.5)
+                # Ottieni le finestre rimaste dopo la chiusura
+                handles_after = self.webdriver.window_handles
+                # Passa alla prima finestra rimasta
+                self.webdriver.switch_to.window(handles_after[0])
+                time.sleep(0.5)
+            else:
+                logging.error("Non è possibile chiudere l'unica finestra aperta.")
 
     def visitNewTab(self, timeToWait: int = 0):
         self.switchToNewTab(timeToWait)
@@ -212,14 +237,14 @@ class Utils:
             targetDesktop = (counters["pcSearch"][0]["pointProgressMax"] + counters["pcSearch"][1]["pointProgressMax"])
         except:
             targetDesktop = counters["pcSearch"][0]["pointProgressMax"]
-        print("Target desktop= ".capitalize() + str(targetDesktop))  # debug per aggiustare il conteggio dei punti
+        logging.info("Target desktop= ".capitalize() + str(targetDesktop))  # debug per aggiustare il conteggio dei punti
         if 33 <= targetDesktop <= 102:
             # Level 1 or 2 EU
             searchPoints = 3
         elif targetDesktop == 55 or targetDesktop >= 170:
             # Level 1 or 2 US
             searchPoints = 5
-        print("Search Point= ".capitalize() + str(searchPoints))  # debug per aggiustare il conteggio dei punti
+        logging.info("Search Point= ".capitalize() + str(searchPoints))  # debug per aggiustare il conteggio dei punti
         remainingDesktop = int((targetDesktop - progressDesktop) / searchPoints)
         remainingMobile = 0
         if dashboard["userStatus"]["levelInfo"]["activeLevel"] != "Level1":
