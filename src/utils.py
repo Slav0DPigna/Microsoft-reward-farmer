@@ -122,6 +122,9 @@ class Utils:
             return null;
         }
         """
+        current_url = self.webdriver.current_url
+        if current_url!="https://rewards.bing.com/":
+            self.webdriver.get("https://rewards.bing.com/")
         dashboard_data = self.webdriver.execute_script(script)
         if dashboard_data is None:
             raise ValueError("Dashboard object is not defined on the page.")
