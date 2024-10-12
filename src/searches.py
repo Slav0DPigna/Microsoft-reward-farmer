@@ -59,10 +59,11 @@ class Searches:
             logging.info("[BING] " + f"{i}/{numberOfSearches}"+" the search is "+str(word))
             points = self.bingSearch(word)
             if points <= pointsCounter and i > 1:
-                logging.warning("Points don't increase. I have to wait about 15 minutes")
-                for j in range(15):
+                minutes= random.randint(15,18)
+                logging.warning("Points don't increase. I have to wait about "+str(minutes)+" minutes")
+                for j in range(minutes):
                     time.sleep(60)
-                    logging.info(str(j+1)+" minutes passed")
+                    logging.warning(str(j+1)+" minutes passed")
                 logging.warning("The waiting is finished")
                 #relatedTerms = self.getRelatedTerms(word)[:2]
                 #for term in relatedTerms:
@@ -96,7 +97,7 @@ class Searches:
                 searchbar = self.webdriver.find_element(By.ID, "sb_form_q")
                 searchbar.send_keys(word)
                 searchbar.submit()
-                random_int = random.randint(60, 120)
+                random_int = random.randint(73, 140)
                 logging.info("[BING] time to sleep "+str(random_int)+" seconds")
                 time.sleep(random_int)
                 return self.browser.utils.getBingAccountPoints()
